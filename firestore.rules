@@ -10,7 +10,7 @@ service cloud.firestore {
       return signedIn()
         && request.auth.token.email is string
         && request.auth.token.email.matches(
-          '^[^@]+@ourofinoambiental[.]com[.]br$'
+          '^[^@]+@example[.]com$'
         )
         && request.auth.token.email_verified == true;
     }
