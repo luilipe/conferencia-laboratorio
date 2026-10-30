@@ -1,0 +1,42 @@
+name: Importar codigo revisado
+on:
+  push:
+    branches: [main]
+    paths: ['conferencia-laboratorio.zip', '.github/workflows/importar-projetos.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir pacote e restaurar arquivos
+        shell: python
+        run: |
+          import hashlib, json, pathlib, zipfile
+          source = pathlib.Path('conferencia-laboratorio.zip')
+          assert source.exists(), 'Pacote de codigo ausente'
+          assert hashlib.sha256(source.read_bytes()).hexdigest() == '484942ae41f84fa938ee0da230515fdfe6900d531769c959f948c51779cdcce1', 'SHA-256 divergente'
+          with zipfile.ZipFile(source) as archive:
+              entries = {item.filename: item for item in archive.infolist() if not item.is_dir()}
+              manifest = json.loads(archive.read('manifesto-sha256.json'))
+              assert set(entries) == set(manifest) | {'manifesto-sha256.json'}
+              for filename, item in entries.items():
+                  destination = pathlib.PurePosixPath(filename.replace(chr(92), '/'))
+                  assert not destination.is_absolute() and '..' not in destination.parts and '.git' not in destination.parts
+                  assert (item.external_attr >> 16) & 0o170000 != 0o120000
+                  content = archive.read(item)
+                  if filename in manifest:
+                      assert hashlib.sha256(content).hexdigest() == manifest[filename], filename
+                  target = pathlib.Path(*destination.parts)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(content)
+          source.unlink()
+      - name: Versionar codigo fonte
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git commit -m "chore: publicar codigo com dados ficticios"
+          git push
