@@ -1,0 +1,70 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.vinext/
+/out/
+
+# misc
+.DS_Store
+desktop.ini
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+next-env.d.ts
+*.tsbuildinfo
+/dist/
+/.wrangler/
+/outputs/
+/work/
+/.tmp-test/
+
+# Local data and secrets
+.env*
+!.env.example
+.firebaserc
+.firebase/
+.wrangler/
+.sites-runtime/
+node_modules/
+.next/
+out/
+dist/
+outputs/
+output/
+tmp/
+*.log
+*.db
+*.sqlite*
+*.tsbuildinfo
+*service-account*.json
+*credentials*.json
+*.pem
+*.key
+desktop.ini

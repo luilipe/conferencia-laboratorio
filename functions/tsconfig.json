@@ -1,0 +1,1 @@
+{"extends":"../tsconfig.json","compilerOptions":{"incremental":false},"include":["src/**/*.ts","../backend/**/*.ts"],"exclude":["node_modules","dist"]}

@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {renderReportHtml} from '../lib/client-reports/report-html.ts';
+import {renderReportChartSvg} from '../lib/client-reports/chart-svg.ts';
+const doc={id:'d',clientId:'demo13',stationId:'etdi',period:'2026-09',revision:1,rendererVersion:'4',presetVersion:'2',mode:'draft',identity:{clientDisplayName:'Cliente <script>alert(1)</script>',facilityName:'Unidade',issueDate:'2026-10-26'},sources:[],issues:[],sections:[{id:'results',title:'Resultados',orientation:'portrait',paragraphs:['<img src="https://evil.invalid">'],tables:[{id:'t',title:'DBO',columns:['Resultado'],rows:[['≤ 2,0 µg/L']],sourceIds:[]}],charts:[]}]};
+test('HTML isola estilos, escapa entradas e preserva texto pesquisável e unidades',()=>{const html=renderReportHtml(doc,{});assert.ok(html.startsWith('<!DOCTYPE html>'));assert.ok(!html.includes('<script>'));assert.ok(!html.includes('<img src="https://evil'));assert.match(html,/&lt;script&gt;/);assert.match(html,/≤ 2,0 µg\/L/);assert.match(html,/@page/);assert.match(html,/thead/);assert.match(html,/RASCUNHO/);});
+test('gráfico SVG conserva lacunas em segmentos separados e não depende de DOM/canvas',()=>{const svg=renderReportChartSvg({id:'x',title:'DBO',unit:'mg/L',kind:'line',series:[{label:'Tratado',points:[{date:'2026-09-01',value:1},{date:'2026-09-02',value:null},{date:'2026-09-03',value:3}]}]});assert.match(svg,/<svg/);assert.equal((svg.match(/<circle /g)||[]).length,2);assert.ok(!svg.includes('NaN'));assert.match(svg,/mg\/L/);});

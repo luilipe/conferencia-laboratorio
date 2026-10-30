@@ -1,0 +1,4 @@
+{
+  "indexes": [{"collectionGroup":"clientReports","queryScope":"COLLECTION","fields":[{"fieldPath":"clientId","order":"ASCENDING"},{"fieldPath":"period","order":"DESCENDING"}]}],
+  "fieldOverrides": [{"collectionGroup":"chunks","fieldPath":"payload","indexes":[]}]
+}

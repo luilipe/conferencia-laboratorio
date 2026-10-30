@@ -1,0 +1,7 @@
+import {spawnSync} from 'node:child_process';import fs from 'node:fs';import path from 'node:path';
+const scratch=path.resolve('../tmp/client-reports');const env={...process.env,XDG_CONFIG_HOME:path.join(scratch,'firebase-config'),FIREBASE_EMULATORS_PATH:path.join(scratch,'emulators'),CI:'true',FIREBASE_CLI_DISABLE_USAGE_REPORTING:'true'};
+env.PATH=path.dirname(process.execPath)+path.delimiter+env.PATH;
+fs.mkdirSync(env.XDG_CONFIG_HOME,{recursive:true});fs.mkdirSync(env.FIREBASE_EMULATORS_PATH,{recursive:true});
+const javaDir=path.join(scratch,'java');if(fs.existsSync(javaDir)){const runtime=fs.readdirSync(javaDir,{withFileTypes:true}).find(e=>e.isDirectory()&&fs.existsSync(path.join(javaDir,e.name,'bin',process.platform==='win32'?'java.exe':'java')));if(runtime)env.PATH=path.join(javaDir,runtime.name,'bin')+path.delimiter+env.PATH;}
+const config=path.join(scratch,'rules-isolated.json');fs.writeFileSync(config,JSON.stringify({firestore:{rules:path.resolve('firestore.rules')},emulators:{firestore:{host:'127.0.0.1',port:8082},hub:{host:'127.0.0.1',port:4402},logging:{host:'127.0.0.1',port:4502},ui:{enabled:false},singleProjectMode:true}}));
+const result=spawnSync(process.execPath,['node_modules/firebase-tools/lib/bin/firebase.js','emulators:exec','--config',config,'--only','firestore','--project','demo-client-reports','node --test tests/emulator/client-report-store.test.mjs'],{env,stdio:'inherit'});process.exit(result.status??1);

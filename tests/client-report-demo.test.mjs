@@ -1,0 +1,2 @@
+import assert from 'node:assert/strict';import test from 'node:test';import {reportEmulatorsAllowed} from '../lib/firebase-emulator-policy.ts';
+test('modo de demonstração exige opt-in, projeto demo e endereço local',()=>{assert.equal(reportEmulatorsAllowed('true','demo-client-reports','localhost'),true);for(const args of [['false','demo-client-reports','localhost'],['true','actual-project','localhost'],['true','demo-client-reports','example.com']])assert.equal(reportEmulatorsAllowed(...args),false);});

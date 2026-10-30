@@ -1,0 +1,530 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function corporateIdentity() {
+      return signedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email.matches(
+          '^[^@]+@ourofinoambiental[.]com[.]br$'
+        )
+        && request.auth.token.email_verified == true;
+    }
+
+    function userProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function activeUser() {
+      return corporateIdentity()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        )
+        && userProfile().data.active == true;
+    }
+
+    function administrator() {
+      return activeUser() && userProfile().data.role == 'administrator';
+    }
+
+    match /users/{userId} {
+      allow read: if (corporateIdentity() && userId == request.auth.uid)
+        || activeUser();
+      allow create: if corporateIdentity()
+        && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'displayName',
+          'email',
+          'role',
+          'active',
+          'createdAt'
+        ])
+        && request.resource.data.displayName is string
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == 'reviewer'
+        && request.resource.data.active == true;
+      allow update: if administrator();
+      allow delete: if false;
+    }
+
+    match /conferences/{conferenceId} {
+      allow read: if activeUser();
+      allow create: if activeUser()
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.status in ['in_review', 'reviewed'];
+      allow update: if activeUser()
+        && (
+          (
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['summary', 'status', 'updatedAt'])
+            && request.resource.data.status in ['in_review', 'reviewed']
+          )
+          || (
+            administrator()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'archivedAt',
+              'archivedByUid',
+              'archivedByName',
+              'archivedByEmail',
+              'updatedAt'
+            ])
+            && request.resource.data.archivedAt is timestamp
+            && request.resource.data.archivedByUid == request.auth.uid
+            && request.resource.data.archivedByName is string
+            && request.resource.data.archivedByEmail
+              == request.auth.token.email
+          )
+        );
+      allow delete: if false;
+
+      match /items/{itemId} {
+        allow read: if activeUser();
+        allow create: if activeUser()
+          && getAfter(/databases/$(database)/documents/conferences/$(conferenceId))
+            .data.createdByUid == request.auth.uid
+          && request.resource.data.decision == 'pending';
+        allow update: if activeUser()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'decision',
+            'reviewComment',
+            'reviewedBy',
+            'reviewedByUid',
+            'reviewedAt'
+          ])
+          && request.resource.data.decision in ['pending', 'approved', 'contested'];
+        allow delete: if false;
+
+        match /reviews/{reviewId} {
+          allow read: if activeUser();
+          allow create: if activeUser()
+            && request.resource.data.actorUid == request.auth.uid
+            && request.resource.data.decision in ['pending', 'approved', 'contested'];
+          allow update, delete: if false;
+        }
+      }
+
+      match /auditEvents/{eventId} {
+        allow read: if activeUser();
+        allow create: if activeUser()
+          && request.resource.data.actorUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    match /complianceRuns/{runId} {
+      allow read: if activeUser();
+      allow create: if activeUser()
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.status == 'completed';
+      allow update, delete: if false;
+
+      match /items/{itemId} {
+        allow read: if activeUser();
+        allow create: if activeUser()
+          && getAfter(/databases/$(database)/documents/complianceRuns/$(runId))
+            .data.createdByUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /auditEvents/{eventId} {
+        allow read: if activeUser();
+        allow create: if activeUser()
+          && request.resource.data.actorUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /individualReportSettings/{settingsId} {
+        allow read: if activeUser();
+        allow create, update: if activeUser()
+          && settingsId == 'current'
+          && request.resource.data.keys().hasOnly([
+            'orientations',
+            'savedByUid',
+            'savedByName',
+            'savedByEmail',
+            'savedAt'
+          ])
+          && request.resource.data.orientations is list
+          && request.resource.data.orientations.size() <= 100
+          && request.resource.data.savedByUid == request.auth.uid
+          && request.resource.data.savedByName is string
+          && request.resource.data.savedByEmail == request.auth.token.email
+          && request.resource.data.savedAt is timestamp;
+        allow delete: if false;
+      }
+    }
+
+    match /complianceGuidance/{parameterKey} {
+      allow read: if activeUser();
+      allow create, update: if administrator()
+        && request.resource.data.keys().hasOnly([
+          'parameterKey',
+          'parameterName',
+          'text',
+          'active',
+          'updatedByUid',
+          'updatedByName',
+          'updatedByEmail',
+          'updatedAt'
+        ])
+        && request.resource.data.parameterKey == parameterKey
+        && request.resource.data.parameterName is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.active is bool
+        && request.resource.data.updatedByUid == request.auth.uid
+        && request.resource.data.updatedByName is string
+        && request.resource.data.updatedByEmail == request.auth.token.email
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if false;
+    }
+
+    match /complianceHistory/{monthId} {
+      allow read: if activeUser();
+      allow create, update: if activeUser()
+        && request.resource.data.lastCreatedByUid == request.auth.uid;
+      allow delete: if false;
+
+      match /clients/{clientId} {
+        allow read: if activeUser();
+        allow create, update: if activeUser()
+          && request.resource.data.lastCreatedByUid == request.auth.uid;
+        allow delete: if false;
+
+        match /analyses/{analysisId} {
+          allow read: if activeUser();
+          allow create: if activeUser()
+            && request.resource.data.createdByUid == request.auth.uid
+            && request.resource.data.runId == analysisId;
+          allow update, delete: if false;
+        }
+      }
+    }
+
+    match /complianceMonthlyReports/{monthId} {
+      allow read: if activeUser();
+      allow create, update: if activeUser()
+        && request.resource.data.generatedByUid == request.auth.uid;
+      allow delete: if false;
+
+      match /aiGenerations/{generationId} {
+        allow read: if activeUser();
+        allow write: if false;
+      }
+      match /approvals/{versionId} {
+        allow read: if activeUser();
+        allow write: if false;
+      }
+      match /versions/{versionId} {
+        allow read: if activeUser();
+        allow create: if activeUser()
+          && request.resource.data.generatedByUid == request.auth.uid
+          && request.resource.data.versionId == versionId;
+        allow update, delete: if false;
+      }
+    }
+
+    match /complianceClients/{documentId} {
+      allow read: if activeUser();
+      allow create, update: if administrator();
+      allow delete: if false;
+    }
+
+    match /analysisScheduleMonths/{monthId} {
+      allow read: if activeUser();
+      allow create, update: if activeUser()
+        && request.resource.data.lastImportByUid == request.auth.uid;
+      allow delete: if false;
+
+      match /samples/{sampleId} {
+        allow read: if activeUser();
+        allow create, update: if activeUser()
+          && request.resource.data.updatedByUid == request.auth.uid;
+        allow delete: if false;
+      }
+
+      match /imports/{importId} {
+        allow read: if activeUser();
+        allow create, update: if activeUser()
+          && request.resource.data.importedByUid == request.auth.uid;
+        allow delete: if false;
+      }
+    }
+
+    match /analysisClientRules/{documentId} {
+      allow read: if activeUser();
+      allow create, update: if administrator();
+      allow delete: if false;
+    }
+
+    match /analysisNotionProvisioningRequests/{documentId} {
+      allow read: if activeUser();
+      allow create: if activeUser()
+        && request.resource.data.requestedByUid == request.auth.uid
+        && request.resource.data.catalogStatus == 'pending'
+        && request.resource.data.currentTarget.status == 'pending'
+        && request.resource.data.templateTarget.status == 'pending'
+        && request.resource.data.keys().hasOnly([
+          'provisioningKey',
+          'competence',
+          'proposedRuleId',
+          'sourceCompany',
+          'proposedTitle',
+          'analysisType',
+          'periodicity',
+          'sampleNumbers',
+          'uploadIds',
+          'collectionDates',
+          'publicationDate',
+          'publicationStatus',
+          'currentTarget',
+          'templateTarget',
+          'catalogStatus',
+          'promptVersion',
+          'requestedAt',
+          'requestedByUid',
+          'requestedByName',
+          'requestedByEmail',
+          'updatedAt'
+        ]);
+      allow update: if administrator();
+      allow delete: if false;
+    }
+
+    match /systemSettings/{documentId} {
+      allow read: if activeUser();
+      allow create, update: if administrator();
+      allow delete: if false;
+    }
+
+    match /legalSources/{documentId} {
+      allow read: if activeUser();
+      allow create, update: if administrator();
+      allow delete: if false;
+    }
+
+    match /ruleSets/{documentId} {
+      allow read: if activeUser();
+      allow create, update: if administrator();
+      allow delete: if false;
+    }
+
+    match /complianceRules/{documentId} {
+      allow read: if activeUser();
+      allow create, update: if administrator();
+      allow delete: if false;
+    }
+
+    function reportClient(data) {
+      return data.clientId in ['demo13', 'demo24', 'demo08', 'demo09', 'demo14', 'demo02', 'demo01']
+        && data.stationId is string && data.stationId.matches('^[a-z0-9-]{1,40}$')
+        && data.period is string && data.period.matches('^[0-9]{4}-(0[1-9]|1[0-2])$');
+    }
+
+    function reportRoot(data) {
+      return data.keys().hasOnly(['clientId', 'stationId', 'period', 'revision', 'currentVersionId', 'status', 'updatedAt', 'createdByUid', 'createdAt'])
+        && reportClient(data) && data.revision is int && data.revision > 0
+        && data.currentVersionId is string && data.currentVersionId.size() > 0
+        && data.status in ['draft', 'finalized'] && data.createdByUid is string
+        && data.createdAt is timestamp && data.updatedAt == request.time;
+    }
+
+    function reportPointer(reportId, data) {
+      let version = getAfter(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(data.currentVersionId)).data;
+      return version.reportId == reportId && version.versionId == data.currentVersionId
+        && version.revision == data.revision && version.status == data.status
+        && version.clientId == data.clientId && version.stationId == data.stationId
+        && version.period == data.period;
+    }
+
+    function writingReportVersion(reportId, versionId, data) {
+      return data.keys().hasOnly(['reportId', 'versionId', 'clientId', 'stationId', 'period', 'baseRevision', 'revision', 'status', 'createdByUid', 'createdAt', 'review', 'reviewedAt', 'presetVersion', 'rendererVersion', 'chunkCount', 'sha256', 'totalBytes'])
+        && reportClient(data) && data.reportId == reportId && data.versionId == versionId
+        && data.createdByUid == request.auth.uid && data.createdAt == request.time
+        && data.status == 'writing' && data.review == null && data.reviewedAt == null
+        && data.baseRevision is int && data.baseRevision >= 0 && data.revision == data.baseRevision + 1
+        && data.presetVersion is string && data.presetVersion.size() > 0
+        && data.rendererVersion is string && data.rendererVersion.size() > 0
+        && data.chunkCount is int && data.chunkCount > 0 && data.chunkCount <= 10000
+        && data.totalBytes is int && data.totalBytes > 0 && data.totalBytes <= data.chunkCount * 204800
+        && data.sha256 is string && data.sha256.matches('^[a-f0-9]{64}$');
+    }
+
+    function enabledReportPreset(data) {
+      let settings = get(/databases/$(database)/documents/clientReportClients/$(data.clientId)).data;
+      return settings.clientId == data.clientId
+        && (data.stationId + '@' + data.presetVersion) in settings.enabledPresetVersions;
+    }
+
+    function technicalReportReview(review) {
+      return review is map && review.keys().hasOnly(['actorUid', 'actorName', 'acceptedWarnings'])
+        && review.actorUid == request.auth.uid && review.actorName is string && review.actorName.size() > 0
+        && review.acceptedWarnings is list && review.acceptedWarnings.size() <= 10000;
+    }
+
+    function validIdentitySource(s) {
+      return s is map && s.keys().hasOnly(['fileName','sha256','fields','importedByUid','importedAt'])
+        && s.fileName is string && s.fileName.size() > 0 && s.fileName.size() <= 500
+        && s.sha256 is string && s.sha256.matches('^[a-f0-9]{64}$')
+        && s.fields is list && s.fields.size() > 0 && s.fields.size() <= 12 && s.fields.hasOnly(['clientDisplayName','facilityName','requesterName','taxId','address','responsibleName','responsibleRegistration','postalCode','city','state','phone','stateRegistration'])
+        && s.importedByUid is string && s.importedByUid.size() > 0 && s.importedByUid.size() <= 128
+        && s.importedAt is string && s.importedAt.size() <= 40;
+    }
+    function validIdentitySourcesList(v) {
+      return v is list && v.size() <= 10
+        && (v.size() <= 0 || validIdentitySource(v[0]))
+        && (v.size() <= 1 || validIdentitySource(v[1]))
+        && (v.size() <= 2 || validIdentitySource(v[2]))
+        && (v.size() <= 3 || validIdentitySource(v[3]))
+        && (v.size() <= 4 || validIdentitySource(v[4]))
+        && (v.size() <= 5 || validIdentitySource(v[5]))
+        && (v.size() <= 6 || validIdentitySource(v[6]))
+        && (v.size() <= 7 || validIdentitySource(v[7]))
+        && (v.size() <= 8 || validIdentitySource(v[8]))
+        && (v.size() <= 9 || validIdentitySource(v[9]));
+    }
+    function validIdentitySources(v) {
+      return v is map && v.size() <= 10 && v.keys().hasOnly(['etdi','biologico','combined','ete','eta'])
+        && (!('etdi' in v) || validIdentitySourcesList(v['etdi']))
+        && (!('biologico' in v) || validIdentitySourcesList(v['biologico']))
+        && (!('combined' in v) || validIdentitySourcesList(v['combined']))
+        && (!('ete' in v) || validIdentitySourcesList(v['ete']))
+        && (!('eta' in v) || validIdentitySourcesList(v['eta']));
+    }
+    function validOptionalCharts(v) {
+      return v is map && v.size() <= 10 && v.keys().hasOnly(['etdi@2','biologico@2','combined@2','ete@2','eta@2'])
+        && (!('etdi@2' in v) || (v['etdi@2'] is list && v['etdi@2'].size() <= 4 && v['etdi@2'].hasOnly(['demo13-DBO','demo13-DQO','demo24-ph-esmaltacao','demo24-ph-polidora'])))
+        && (!('biologico@2' in v) || (v['biologico@2'] is list && v['biologico@2'].size() <= 4 && v['biologico@2'].hasOnly(['demo13-DBO','demo13-DQO','demo24-ph-esmaltacao','demo24-ph-polidora'])))
+        && (!('combined@2' in v) || (v['combined@2'] is list && v['combined@2'].size() <= 4 && v['combined@2'].hasOnly(['demo13-DBO','demo13-DQO','demo24-ph-esmaltacao','demo24-ph-polidora'])))
+        && (!('ete@2' in v) || (v['ete@2'] is list && v['ete@2'].size() <= 4 && v['ete@2'].hasOnly(['demo13-DBO','demo13-DQO','demo24-ph-esmaltacao','demo24-ph-polidora'])))
+        && (!('eta@2' in v) || (v['eta@2'] is list && v['eta@2'].size() <= 4 && v['eta@2'].hasOnly(['demo13-DBO','demo13-DQO','demo24-ph-esmaltacao','demo24-ph-polidora'])));
+    }
+
+    function validHistoryPreference(v) {
+      return v is map && v.keys().hasOnly(['version','previousMonths'])
+        && v.version == 1 && v.previousMonths is int && v.previousMonths >= 0 && v.previousMonths <= 3;
+    }
+    function validHistoryPreferences(v) {
+      return v is map && v.keys().hasOnly(['etdi','biologico','combined','ete','eta'])
+        && (!('etdi' in v) || validHistoryPreference(v.etdi))
+        && (!('biologico' in v) || validHistoryPreference(v.biologico))
+        && (!('combined' in v) || validHistoryPreference(v.combined))
+        && (!('ete' in v) || validHistoryPreference(v.ete))
+        && (!('eta' in v) || validHistoryPreference(v.eta));
+    }
+    function validModernVersions(v) {
+      return v is map && v.keys().hasOnly(['etdi','biologico','combined','ete','eta'])
+        && (!('etdi' in v) || (v.etdi is list && v.etdi.size() <= 2 && v.etdi.hasOnly(['3', '4'])))
+        && (!('biologico' in v) || (v.biologico is list && v.biologico.size() <= 2 && v.biologico.hasOnly(['3', '4'])))
+        && (!('combined' in v) || (v.combined is list && v.combined.size() <= 2 && v.combined.hasOnly(['3', '4'])))
+        && (!('ete' in v) || (v.ete is list && v.ete.size() <= 2 && v.ete.hasOnly(['3', '4'])))
+        && (!('eta' in v) || (v.eta is list && v.eta.size() <= 2 && v.eta.hasOnly(['3', '4'])));
+    }
+    function validEditorialModel(v) {
+      return v is map && v.keys().hasOnly(['version','sections','sourceHash','approvedByUid','approvedAt'])
+        && v.version == '1' && v.sections is list && v.sections.size() > 0 && v.sections.size() <= 8
+        && v.sourceHash is string && v.sourceHash.matches('^[a-f0-9]{64}$')
+        && v.approvedByUid is string && v.approvedByUid.size() > 0 && v.approvedByUid.size() <= 128
+        && v.approvedAt is string && v.approvedAt.size() > 0 && v.approvedAt.size() <= 40;
+    }
+    function validEditorialModels(v) {
+      return v is map && v.keys().hasOnly(['etdi','biologico','combined','ete','eta'])
+        && (!('etdi' in v) || validEditorialModel(v.etdi))
+        && (!('biologico' in v) || validEditorialModel(v.biologico))
+        && (!('combined' in v) || validEditorialModel(v.combined))
+        && (!('ete' in v) || validEditorialModel(v.ete))
+        && (!('eta' in v) || validEditorialModel(v.eta));
+    }
+    match /clientReportClients/{clientId} {
+      allow read: if activeUser();
+      allow create, update: if administrator()
+        && request.resource.data.keys().hasOnly(['clientId', 'identities', 'mappings', 'enabledPresetVersions', 'references', 'updatedByUid', 'updatedAt', 'identitySources', 'enabledOptionalCharts', 'labComparisonPreferences', 'technicalApproverUid', 'enabledRendererVersions', 'editorialModels'])
+        && request.resource.data.clientId == clientId
+        && clientId in ['demo13', 'demo24', 'demo08', 'demo09', 'demo14', 'demo02', 'demo01']
+        && (!('identitySources' in request.resource.data) || validIdentitySources(request.resource.data.identitySources))
+        && (!('enabledOptionalCharts' in request.resource.data) || validOptionalCharts(request.resource.data.enabledOptionalCharts))
+        && (!('labComparisonPreferences' in request.resource.data) || validHistoryPreferences(request.resource.data.labComparisonPreferences))
+        && (!('enabledRendererVersions' in request.resource.data) || validModernVersions(request.resource.data.enabledRendererVersions))
+        && (!('editorialModels' in request.resource.data) || validEditorialModels(request.resource.data.editorialModels))
+        && (!('technicalApproverUid' in request.resource.data) || (request.resource.data.technicalApproverUid is string && request.resource.data.technicalApproverUid.size() <= 128))
+        && request.resource.data.identities is map && request.resource.data.identities.size() <= 10
+        && request.resource.data.mappings is list && request.resource.data.mappings.size() <= 5000
+        && request.resource.data.references is list && request.resource.data.references.size() <= 5000
+        && request.resource.data.enabledPresetVersions is list && request.resource.data.enabledPresetVersions.size() <= 100
+        && request.resource.data.updatedByUid == request.auth.uid && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+
+      match /modelVersions/{versionId} {
+        allow read: if activeUser();
+        allow create: if administrator() && request.auth.uid == request.resource.data.archivedByUid;
+        allow update, delete: if false;
+      }
+    }
+
+    match /clientReports/{reportId} {
+      allow read: if activeUser();
+      allow create: if activeUser() && reportRoot(request.resource.data)
+        && request.resource.data.revision == 1 && request.resource.data.status == 'draft'
+        && request.resource.data.createdByUid == request.auth.uid && request.resource.data.createdAt == request.time
+        && reportPointer(reportId, request.resource.data)
+        && getAfter(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(request.resource.data.currentVersionId)).data.createdByUid == request.auth.uid;
+      allow update: if activeUser() && reportRoot(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revision', 'currentVersionId', 'status', 'updatedAt'])
+        && reportPointer(reportId, request.resource.data)
+        && (
+          (request.resource.data.revision == resource.data.revision + 1
+            && request.resource.data.status == 'draft'
+            && getAfter(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(request.resource.data.currentVersionId)).data.baseRevision == resource.data.revision
+            && getAfter(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(request.resource.data.currentVersionId)).data.createdByUid == request.auth.uid)
+          || (resource.data.status == 'draft' && request.resource.data.status == 'finalized'
+            && getAfter(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(resource.data.currentVersionId)).data.rendererVersion != '4'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+            && getAfter(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(resource.data.currentVersionId)).data.review.actorUid == request.auth.uid)
+        );
+      allow delete: if false;
+
+      match /versions/{versionId} {
+        allow read: if activeUser();
+        allow create: if activeUser() && writingReportVersion(reportId, versionId, request.resource.data);
+        allow update: if activeUser()
+          && (
+            (resource.data.status == 'writing' && request.resource.data.status == 'draft'
+              && resource.data.createdByUid == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+              && getAfter(/databases/$(database)/documents/clientReports/$(reportId)).data.currentVersionId == versionId
+              && getAfter(/databases/$(database)/documents/clientReports/$(reportId)).data.revision == resource.data.revision)
+            || (resource.data.status == 'draft' && request.resource.data.status == 'finalized'
+              && resource.data.rendererVersion != '4'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'review', 'reviewedAt'])
+              && technicalReportReview(request.resource.data.review) && request.resource.data.reviewedAt == request.time
+              && enabledReportPreset(resource.data)
+              && getAfter(/databases/$(database)/documents/clientReports/$(reportId)).data.currentVersionId == versionId
+              && getAfter(/databases/$(database)/documents/clientReports/$(reportId)).data.status == 'finalized')
+          );
+        allow delete: if false;
+
+        match /chunks/{chunkId} {
+          allow read: if activeUser();
+          allow create: if activeUser()
+            && get(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(versionId)).data.status == 'writing'
+            && get(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(versionId)).data.createdByUid == request.auth.uid
+            && request.resource.data.keys().hasOnly(['sequence', 'payload', 'sha256'])
+            && request.resource.data.sequence is int && request.resource.data.sequence >= 0
+            && chunkId == string(request.resource.data.sequence)
+            && request.resource.data.sequence < get(/databases/$(database)/documents/clientReports/$(reportId)/versions/$(versionId)).data.chunkCount
+            && request.resource.data.payload is string && request.resource.data.payload.toUtf8().size() <= 204800
+            && request.resource.data.sha256 is string && request.resource.data.sha256.matches('^[a-f0-9]{64}$');
+          allow update, delete: if false;
+        }
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

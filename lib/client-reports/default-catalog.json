@@ -1,0 +1,443 @@
+{
+  "format": "ouro-fino.report-identities",
+  "version": 1,
+  "entries": [
+    {
+      "clientId": "demo13",
+      "stationId": "biologico",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 1",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-1.txt",
+        "sha256": "dae67da4e16569a875626fbcd81c26b389173bf687059bf27cdd67e8e1dc5081"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-1.txt",
+          "sha256": "dae67da4e16569a875626fbcd81c26b389173bf687059bf27cdd67e8e1dc5081"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 1. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "laboratory",
+          "supplies"
+        ],
+        "monthlyRequirements": {
+          "laboratory": "required",
+          "supplies": "conditional"
+        }
+      }
+    },
+    {
+      "clientId": "demo13",
+      "stationId": "etdi",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 2",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-2.txt",
+        "sha256": "8a83d94d44b74afe4f81305048bf6e5b3f5f5ba22a2947652fdcf5b83290fc8c"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-2.txt",
+          "sha256": "8a83d94d44b74afe4f81305048bf6e5b3f5f5ba22a2947652fdcf5b83290fc8c"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 2. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "laboratory",
+          "supplies"
+        ],
+        "monthlyRequirements": {
+          "laboratory": "required",
+          "supplies": "conditional"
+        }
+      }
+    },
+    {
+      "clientId": "demo02",
+      "stationId": "ete",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 3",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-3.txt",
+        "sha256": "aa2f4fa70b74a4b8851e3247959596141665da2a6bb16b4d52db4fc81653a707"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-3.txt",
+          "sha256": "aa2f4fa70b74a4b8851e3247959596141665da2a6bb16b4d52db4fc81653a707"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 3. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "laboratory",
+          "operations",
+          "supplies"
+        ],
+        "monthlyRequirements": {
+          "laboratory": "required",
+          "operations": "conditional",
+          "supplies": "conditional"
+        }
+      }
+    },
+    {
+      "clientId": "demo08",
+      "stationId": "ete",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 4",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-4.txt",
+        "sha256": "4cfd63eccc4aae3388b8705807a407d510eca5e210da3d342679870a05ed8dd1"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-4.txt",
+          "sha256": "4cfd63eccc4aae3388b8705807a407d510eca5e210da3d342679870a05ed8dd1"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 4. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "laboratory",
+          "operations"
+        ],
+        "monthlyRequirements": {
+          "laboratory": "required",
+          "operations": "required"
+        }
+      }
+    },
+    {
+      "clientId": "demo24",
+      "stationId": "combined",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 5",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-5.txt",
+        "sha256": "9bc9a4f2ff5e3b2d7f968f44e1ef7e093056a22f363741faad57b73a005378f6"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-5.txt",
+          "sha256": "9bc9a4f2ff5e3b2d7f968f44e1ef7e093056a22f363741faad57b73a005378f6"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 5. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "operations",
+          "supplies"
+        ],
+        "monthlyRequirements": {
+          "operations": "required",
+          "supplies": "conditional"
+        }
+      }
+    },
+    {
+      "clientId": "demo01",
+      "stationId": "ete",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 6",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-6.txt",
+        "sha256": "505990fb6d35e8ad9a104c6e7492d732f5e033bc86fe0f8c6eb96ba3964c30b8"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-6.txt",
+          "sha256": "505990fb6d35e8ad9a104c6e7492d732f5e033bc86fe0f8c6eb96ba3964c30b8"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 6. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "laboratory",
+          "operations",
+          "meters",
+          "supplies",
+          "journal"
+        ],
+        "monthlyRequirements": {
+          "laboratory": "required",
+          "operations": "required",
+          "meters": "required",
+          "supplies": "required",
+          "journal": "required"
+        }
+      }
+    },
+    {
+      "clientId": "demo14",
+      "stationId": "eta",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 7",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-7.txt",
+        "sha256": "eb777e9ae8296357ccf25666fe1f35a79f49682b7ba5c56b127bb1c16384deee"
+      },
+      "pendingFields": [],
+      "fixedText": {
+        "source": {
+          "fileName": "modelo-ficticio-7.txt",
+          "sha256": "eb777e9ae8296357ccf25666fe1f35a79f49682b7ba5c56b127bb1c16384deee"
+        },
+        "sections": [
+          {
+            "id": "presentation",
+            "title": "Apresentação",
+            "paragraphs": [
+              "Relatório demonstrativo de Cliente Fictício 7. Todos os cadastros e resultados deste exemplo são fictícios."
+            ]
+          },
+          {
+            "id": "technical-introduction",
+            "title": "Informações Técnicas",
+            "paragraphs": [
+              "Unidade hipotética para demonstração do acompanhamento ambiental. Este texto não descreve instalações de clientes reais."
+            ]
+          },
+          {
+            "id": "objective",
+            "title": "Objetivo",
+            "paragraphs": [
+              "Demonstrar a importação, revisão e exportação de resultados sintéticos, sem validade operacional."
+            ]
+          }
+        ],
+        "monthlySections": [
+          "laboratory",
+          "operations",
+          "meters"
+        ],
+        "monthlyRequirements": {
+          "laboratory": "required",
+          "operations": "required",
+          "meters": "required"
+        }
+      }
+    },
+    {
+      "clientId": "demo09",
+      "stationId": "ete",
+      "identity": {
+        "clientDisplayName": "Cliente Fictício 8",
+        "facilityName": "Unidade de Demonstração",
+        "requesterName": "Organização Fictícia",
+        "taxId": "00.092.965/6951-00",
+        "responsibleName": "Responsável Fictício",
+        "responsibleRegistration": "DEMO - SEM VALIDADE",
+        "address": "Rua de Exemplo, 100",
+        "postalCode": "00000-000",
+        "city": "Cidade de Exemplo",
+        "state": "SP"
+      },
+      "source": {
+        "fileName": "modelo-ficticio-8.txt",
+        "sha256": "be57b4c0e6748b127db1e909e888b0e8acfff4c4fd7bd933ccd024cfe5a32fe8"
+      },
+      "pendingFields": []
+    }
+  ]
+}
